@@ -1,0 +1,183 @@
+#include<Servo.h>
+#include <LiquidCrystal_I2C.h>
+           //SoftwareSerial bluetoothSerial(13,12); // RX, TX pins connected to HC-05 module
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+Servo entry;
+Servo exiti;
+String data;
+String receivedString;
+const int yes= 0;
+const int no= 1;
+const int irentry=2;
+const int irexit=3;
+const int irslot1=4;
+const int irslot2=5;
+const int irslot3=6;
+const int irslot4=7;
+const int gateentry=8;
+const int gateexit=9;
+int slotsavailable=4;
+int fg1;
+int fg2;
+int fg3;
+int fg4;
+void setup() {
+  // put your setup code here, to run once:
+  lcd.init();
+  lcd.backlight();
+  //delay(3000);
+  fg1=no;
+  fg2=no;
+  fg3=no;
+  fg4=no;
+  pinMode(irentry,INPUT);
+  pinMode(irexit,INPUT);
+  pinMode(irslot1,INPUT);
+  pinMode(irslot2,INPUT);
+  pinMode(irslot3,INPUT);
+  pinMode(irslot4,INPUT);
+  entry.attach(gateentry);
+  exiti.attach(gateexit);
+  entry.write(0);
+  exiti.write(0);
+  Serial.begin(9600);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  lcd.setCursor(0, 0);
+  //lcd.print(slotsavailable);
+  lcd.print("slot1:");
+  lcd.print(fg1);
+  lcd.setCursor(9, 0);
+  lcd.print("slot2:");
+  lcd.print(fg2);
+  lcd.setCursor(0, 1);
+    lcd.print("slot3:");
+  lcd.print(fg3);
+  lcd.setCursor(9, 1);
+  lcd.print("slot4:");
+  lcd.print(fg4);
+  data = String(fg1) + " " + String(fg2) + " " + String(fg3) + " " + String(fg4);
+  Serial.println(data);
+  //Serial.println("The available slots are:");
+  //Serial.println(slotsavailable);
+  if (Serial.available()) {
+    receivedString = Serial.readString();
+    Serial.println(receivedString);
+  }
+  if(receivedString.indexOf("sl1b")>0)
+    fg1=yes;
+  else if(receivedString.indexOf("sl2b")>0)
+    fg2=yes;
+  else if(receivedString.indexOf("sl3b")>0)
+    fg3=yes;
+  else if(receivedString.indexOf("sl4b")>0)
+    fg4=yes;    
+  if(slotsavailable==0)
+  {
+    //Serial.println("The parking Lot is full");
+    //goto jump;
+  }
+  if((digitalRead(irentry)==yes)&&(slotsavailable>=1))
+  {
+    entry.write(90);
+    delay(1000);
+    //Serial.println("Entry permission granted!!");
+  }
+  else
+    entry.write(0);
+  //jump:   
+  if(digitalRead(irexit)==yes)
+  {
+    //Serial.println("Exit permission granted!!");
+    exiti.write(90); 
+    delay(1000);
+  }
+  else
+    exiti.write(0);
+  
+  if((digitalRead(irslot1)==yes))
+  {
+    if(fg1==no)
+    {
+      slotsavailable--;
+      fg1=yes;
+    }
+    else
+      slotsavailable=slotsavailable;  
+  }
+  if(digitalRead(irslot2)==yes)
+  {
+    if(fg2==no)
+    {
+      slotsavailable--;
+      fg2=yes;
+    }
+    else
+      slotsavailable=slotsavailable; 
+  }
+  if(digitalRead(irslot3)==yes)
+  {
+    if(fg3==no)
+    {
+      slotsavailable--;
+      fg3=yes;
+    }
+    else
+      slotsavailable=slotsavailable; 
+  }
+  if(digitalRead(irslot4)==yes)
+  {
+    if(fg4==no)
+    {
+      slotsavailable--;
+      fg4=yes;
+    }
+    else
+      slotsavailable=slotsavailable; 
+  }
+  if(digitalRead(irslot1)==no)
+  {
+    if(fg1==yes)
+    {
+      slotsavailable++;
+      fg1=no;
+    }
+    else
+      slotsavailable=slotsavailable;  
+  }
+  if(digitalRead(irslot2)==no)
+  {
+    if(fg2==yes)
+    {
+      slotsavailable++;
+      fg2=no;
+    }
+    else
+      slotsavailable=slotsavailable; 
+  }
+  if(digitalRead(irslot3)==no)
+  {
+    if(fg3==yes)
+    {
+      slotsavailable++;
+      fg3=no;
+    }
+    else
+      slotsavailable=slotsavailable; 
+  }
+  if(digitalRead(irslot4)==no)
+  {
+    if(fg4==yes)
+    {
+      slotsavailable++;
+      fg4=no;
+    }
+    else
+      slotsavailable=slotsavailable; 
+
+  }
+  delay(200);
+}
+ 
